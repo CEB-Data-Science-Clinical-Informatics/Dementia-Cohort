@@ -7,20 +7,21 @@
 > Please be aware that the information provided here is current as of the date of this documentation. However, it is subject to potential changes or updates in the future.
 
 ## Contents
-
 - [Data Source](#data-source)
 - [Cohort Identification](#cohort-identification)
     - [Diagnosis of Dementia](#diagnosis-of-dementia)
     - [Prescription of Anti-Dementia Medications](#prescription-of-anti-dementia-medications)
     - [Merging](#merging)
 - [Subtype Classification](#subtype-classification)
+    - [Example Data Table](#example-data-table)
     - [Dementia Subtypes](#dementia-subtypes)
     - [Initial Label](#initial-label)
     - [Final Label](#final-label)
-    - [Data Format](#data-format)
+    - [Example Data Table (Labelled)](#example-data-table-labelled)
 - [Final Cohort](#final-cohort)
 - [Subtype Distribution](#subtype-distribution)
-- [Subtype Transitions](#subtype-transitions)
+    - [Distribution](#distribution)
+    - [Transitions](#transitions)
 
 ---
 
@@ -61,7 +62,7 @@ Rivastigmine Tartrate | Acetylcholinesterase inhibitor
 Galantamine | Acetylcholinesterase inhibitor
 Memantine HCl | NMDA receptor antagonist
 
-Unlike the HT cohort, no further exclusion logic is applied to medication-only patients. Anti-dementia medications have sufficiently specific indications that their prescription is treated as evidence of dementia management without requiring a differential exclusion step.
+Anti-dementia medications have sufficiently specific indications that their prescription is treated as evidence of dementia management without requiring a differential exclusion step.
 
 ### Merging
 
@@ -73,7 +74,21 @@ Combining both criteria categorises patients into three groups:
 
 All three groups are included in the cohort, yielding a total of **13,399 dementia subjects**.
 
+### Data Format
+
+This table serves as the primary table for identifying the cohort. All observations meeting each criterion are extracted. The earliest date of each subtype-specific ICD-10 code is recorded as the **diagnosis date for that subtype**, and the earliest date of any relevant diagnosis is considered as the **diagnosis date**. Similarly, the earliest date of any anti-dementia medication prescription is recorded as the **medication date**. 
+
 The **index date** is defined as the earliest date on which a patient met either criterion — the first dementia-related diagnosis date or the first anti-dementia medication prescription date, whichever came first.
+
+#### Example Data Table
+
+HN | Index Date | Diagnosis Date | Medication Date | AD Date | VaD Date | Other Date 
+-|-|-|-|-|-|-
+A | 2022-10-17 | 2022-10-17 | — | — | — | 2022-10-17
+B | 2010-03-06 | 2012-09-01 | 2010-03-06 | — | 2012-09-01 | — 
+C | 2023-02-02 | — | 2023-02-02 | — | — | —
+D | 2016-08-24 | 2016-08-24 | 2016-08-24 | 2016-08-24 | — | —
+E | 2012-09-12 | 2012-09-12 | — | 2012-09-12 | — | 2014-06-07
 
 ---
 
@@ -111,9 +126,14 @@ The final label follows the same logic as the initial label but applied across t
 - A medication-only patient who never receives a specific ICD-10 code → remains **Unspecified Dementia**
 - A medication-only patient who later receives a specific ICD-10 code → reclassified to that subtype (or Mixed if multiple)
 
-### Data Format
+#### Example Data Table (Labelled)
 
-The table below illustrates how the labeling logic applies to representative patients. Raw diagnosis and medication codes are shown in Slide 4; collapsed dates (earliest per domain) in Slide 5; and final label assignments in Slide 6.
+**Referring to the [example data table](#example-data-table) above,** the initial and final labels are determined as follows:
+- Patient A had an Other subtype diagnosis at index (2022); no other diagnosis came later → initial label is Other, final label remains Other.
+- Patient B was identified first by medication (2010); a VaD diagnosis came later (2012) → initial label is Unspecified, final label resolves to VaD.
+- Patient C remained medication-only throughout → Unspecified at both time points.
+- Patient D had an AD diagnosis at index (2016) and was also prescribed medication on the same day → initial label is AD, final label remains AD.
+- Patient E had an AD diagnosis at index (2012) and later accrued an Other subtype diagnosis (2014) → final label becomes Mixed.
 
 HN | Index Date | Diagnosis Date | Medication Date | AD Date | VaD Date | Other Date | Initial Label | Final Label
 -|-|-|-|-|-|-|-|-
@@ -122,11 +142,6 @@ B | 2010-03-06 | 2012-09-01 | 2010-03-06 | — | 2012-09-01 | — | Medication /
 C | 2023-02-02 | — | 2023-02-02 | — | — | — | Medication / Unspecified | Medication / Unspecified
 D | 2016-08-24 | 2016-08-24 | 2016-08-24 | 2016-08-24 | — | — | Both / AD | Both / AD
 E | 2012-09-12 | 2012-09-12 | — | 2012-09-12 | — | 2014-06-07 | Diagnosis / AD | Diagnosis / Mixed
-
-**Notes:**
-- Patient B was identified first by medication (2010); a VaD diagnosis came later (2012) → initial label is Unspecified, final label resolves to VaD.
-- Patient E had an AD diagnosis at index (2012) and later accrued an Other subtype diagnosis (2014) → final label becomes Mixed.
-- Patient C remained medication-only throughout → Unspecified at both time points.
 
 ---
 
@@ -137,6 +152,11 @@ All patients meeting either inclusion criterion are included in the **CEB Data W
 ---
 
 ## Subtype Distribution
+
+> [!NOTE]
+> The documentation use descriptive statistics and data tables to illustrate the cohort identification process and subtype classification. These are based on the data indentified up to 31 December 2025, and may not reflect any subsequent data additions or corrections. 
+
+### Distribution
 
 The table below shows the number of patients (*n*) and percentage (%) by subtype at index date and at final observation.
 
@@ -151,9 +171,7 @@ Mixed Dementia | 129 (1.0) | 1,936 (14.4)
 
 The large shift from Unspecified at index to specific subtypes at final reflects longitudinal accrual of ICD-10 diagnoses among patients initially identified by medication only. Mixed Dementia increases substantially (1.0% → 14.4%), driven primarily by Unspecified patients who eventually receive multiple subtype-specific codes.
 
----
-
-## Subtype Transitions
+### Transitions
 
 The table below shows how initial subtype labels transition to final subtype labels. Rows are index subtypes; columns are final subtypes. Values are *n* (%).
 
@@ -170,5 +188,5 @@ The table below shows how initial subtype labels transition to final subtype lab
 - AD and VaD labels are relatively stable: 85.3% of index-AD and 74.9% of index-VaD retain their subtype at final.
 - The largest absolute transition is Unspecified → AD (*n* = 2,003), reflecting delayed ICD documentation in medication-first patients.
 - 14.7% of index-AD and 25.1% of index-VaD patients accumulate an additional subtype pathology, resolving to Mixed at final.
-- Once labelled Mixed at index, patients remain Mixed (100%).
+- Once labelled Mixed at index, patients remain Mixed (100%) since this category captures co-occurrence of multiple subtypes.
 - 83.0% of Other Dementia patients retain their subtype; 17.0% transition to AD, likely reflecting co-occurring Alzheimer's pathology.
