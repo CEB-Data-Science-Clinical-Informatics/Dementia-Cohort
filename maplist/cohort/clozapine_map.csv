@@ -1,0 +1,6 @@
+drug_code,drug_name_normalized,group_name,exclude_reason,note
+CLOP1T-,Clozapine,Schizophrenia differential,Schizophrenia differential,Exclude memantine-inferred dementia when clozapine exposure exists
+CLOP2T-,Clozapine,Schizophrenia differential,Schizophrenia differential,Exclude memantine-inferred dementia when clozapine exposure exists
+CLOZ1T-,Clozapine,Schizophrenia differential,Schizophrenia differential,Exclude memantine-inferred dementia when clozapine exposure exists
+N05AH02,Clozapine,Schizophrenia differential,Schizophrenia differential,Exclude memantine-inferred dementia when clozapine exposure exists
+CLOZ2T-,Clozapine,Schizophrenia differential,Schizophrenia differential,Exclude memantine-inferred dementia when clozapine exposure exists

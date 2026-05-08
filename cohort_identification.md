@@ -7,6 +7,7 @@
 > Please be aware that the information provided here is current as of the date of this documentation. However, it is subject to potential changes or updates in the future.
 
 ## Contents
+
 - [Dementia Cohort Identification](#dementia-cohort-identification)
   - [Contents](#contents)
   - [Data Source](#data-source)
@@ -46,6 +47,8 @@ Patients were identified from clinic and in-patient visit records using ICD-10-T
 | F021, F022, F024, F028 | Other Dementia (CJD, Huntington's, HIV, other) | Other |
 | F03 | Unspecified Dementia | Unspecified |
 
+The mapping table of ICD-10-TM codes to dementia subtypes can be found in the maplist folder [here](maplist/cohort/dementia_icd10_map.csv).
+
 > [!NOTE]
 > Dementia with Lewy Bodies (DLB) does not have a dedicated ICD-10-TM code. In clinical practice at Ramathibodi Hospital, DLB cases are coded under **G318** (Other Specified Degenerative Diseases of the Nervous System), which is a broader category not exclusive to DLB. As a result, G318 cannot be reliably mapped to DLB as a distinct subtype and is therefore classified under **Other Dementia** in this cohort.
 
@@ -60,6 +63,8 @@ Patients prescribed any of the following anti-dementia medications were included
 | Galantamine | Acetylcholinesterase inhibitor |
 | Memantine HCl | NMDA receptor antagonist |
 
+The mapping table of medication codes to drug names can be found in the maplist folder [here](maplist/cohort/medication_map.csv).
+
 > [!IMPORTANT]
 > This criterion identifies patients by prescription only, with no exclusion rules applied at this stage. Exclusion rules are applied in the [Exactly Defined Criteria](#exactly-defined-criteria) section, where the remaining medication-only patients are labelled as **Unspecified (Inferred)** and merged with **Unspecified (Diagnosed)** patients (F03) into a single **Unspecified** subtype at final label assignment.
 
@@ -67,11 +72,11 @@ Patients prescribed any of the following anti-dementia medications were included
 
 Utilizing these dual inclusion criteria — diagnosis codes and medication prescriptions — allowed us to categorize patients into three distinct groups based on their dementia status:
 
-1. Patients with ICD-10 dementia codes only (*n* = —)
-2. Patients with both ICD-10 dementia codes and anti-dementia medication prescriptions (*n* = —)
-3. Patients with anti-dementia medication prescriptions only (*n* = —)
+1. Patients with ICD-10 dementia codes only (*n* = 6041)
+2. Patients with both ICD-10 dementia codes and anti-dementia medication prescriptions (*n* = 6755)
+3. Patients with anti-dementia medication prescriptions only (*n* = 3585)
 
-Groups 1 and 2 are considered to have a confirmed diagnosis of dementia. Group 3 undergoes further review under the [Exactly Defined Criteria](#exactly-defined-criteria) to determine eligibility for inclusion as **Unspecified (Inferred)** dementia. The index date for all groups is determined after exclusion rules are applied.
+Groups 1 and 2 are considered to have a confirmed diagnosis of dementia. However, the prescription records undergo further review under the [Exactly Defined Criteria](#exactly-defined-criteria) to determine eligibility for inclusion as **Unspecified (Inferred)** dementia. The index date for all groups is determined after exclusion rules are applied.
 
 ---
 
@@ -89,6 +94,8 @@ Patients with any AChEI prescription are excluded from the dementia cohort if an
 |:---|:---|
 | MCI differential | MCI diagnosis (F067, R41, R418) present anywhere in patient's medical history |
 
+The mapping table of MCI-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/mci_icd10_map.csv).
+
 #### Memantine Group
 
 Patients with any Memantine prescription are assessed against two exclusion criteria, as Memantine has indications beyond dementia.
@@ -97,6 +104,8 @@ Patients with any Memantine prescription are assessed against two exclusion crit
 |:---|:---|
 | Schizophrenia differential | Clozapine prescription **or** schizophrenia-related diagnosis present anywhere in patient's medical history |
 | Radiotherapy differential | Memantine prescription falls within the course of radiotherapy (between first and last recorded radiotherapy date) |
+
+The mapping table of schizophrenia-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/schizophrenia_icd10_map.csv). The mapping table of clozapine medication codes can be found [here](maplist/cohort/clozapine_map.csv). The mapping table of radiotherapy-related ICD-9-CM procedure codes can be found [here](maplist/cohort/radiotherapy_icd9_map.csv).
 
 ##### Radiotherapy
 
@@ -164,9 +173,9 @@ Patients who pass all applicable exclusion criteria — from either or both the 
 
 Following the application of exclusion criteria to the medication arm, patients are consolidated into three groups:
 
-1. Patients with ICD-10 dementia codes only (*n* = —)
-2. Patients with both ICD-10 dementia codes and qualifying anti-dementia medication prescriptions (*n* = —)
-3. Patients with qualifying anti-dementia medication prescriptions only — **Unspecified (Inferred)** (*n* = —)
+1. Patients with ICD-10 dementia codes only (*n* = 7008)
+2. Patients with both ICD-10 dementia codes and qualifying anti-dementia medication prescriptions (*n* = 5788)
+3. Patients with qualifying anti-dementia medication prescriptions only — **Unspecified (Inferred)** (*n* = 3169)
 
 All three groups are included in the final dementia cohort.
 
@@ -212,14 +221,16 @@ These codes were excluded from the dementia cohort pending further review, as th
 | G32\* | Other degenerative disorders of nervous system in diseases classified elsewhere (all subcodes) |
 | G328 | Other specified degenerative disorders of nervous system in diseases classified elsewhere |
 
-| Code Group | Exclusion Note | *n* | % |
-|:---|:---|:---|:---|
-| G31\* | — | — | — |
-| G31\* excluding G318 | G318 already included as Other Dementia | — | — |
-| G312 | — | — | — |
-| G32\* | — | — | — |
-| G32\* excluding G232, G233 | G232, G233 already included as MSA | — | — |
-| G328 | — | — | — |
+| Code Group                | Exclusion Note                                                                             | (n = 1987)     |
+|---------------------------|--------------------------------------------------------------------------------------------|----------------|
+| G31*                      | —                                                                                          | 1927 (96.98%)  |
+| G31* excluding G318       | G318 Other Specified Degenerative Dementia (Lewy Bodies)                                   | 461 (23.20%)   |
+| G312                      | —                                                                                          | 35 (1.76%)     |
+| G32*                      | —                                                                                          | 71 (3.57%)     |
+| G32* excluding G232, G233 | G232 and G233 Multiple System Atrophy                                                      | 71 (3.57%)     |
+| G328                      | —                                                                                          | 62 (3.12%)     |
+
+The mapping table of degenerative/uncertain ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
 
 ### Mild Cognitive Impairment (MCI)
 
@@ -231,11 +242,12 @@ These codes cover mild cognitive impairment and related conditions. They are ide
 | R41 | Other symptoms and signs involving cognitive functions and awareness |
 | R418 | Other and unspecified symptoms and signs involving cognitive functions and awareness |
 
-| Code Group | Exclusion Note | *n* | % |
-|:---|:---|:---|:---|
-| F067 | — | — | — |
-| R41 | — | — | — |
-| R418 | — | — | — |
+| Code Group   | Exclusion Note   | (n = 4989)     |
+|--------------|------------------|----------------|
+| F067         | —                | 4826 (96.73%)  |
+| R418         | —                | 219 (4.39%)    |
+
+The mapping table of MCI-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
 
 ### BPSD / Hallucinations
 
@@ -253,17 +265,17 @@ These codes may reflect behavioural and psychological symptoms of dementia (BPSD
 | F220 | Delusional disorder |
 | F228 | Other persistent delusional disorders |
 
-| Code Group | Exclusion Note | *n* | % |
-|:---|:---|:---|:---|
-| R44 | — | — | — |
-| R440 | — | — | — |
-| R441 | — | — | — |
-| R442 | — | — | — |
-| R443 | — | — | — |
-| R448 | — | — | — |
-| F22 | — | — | — |
-| F220 | — | — | — |
-| F228 | — | — | — |
+| Code Group   | Exclusion Note   | (n = 629)     |
+|--------------|------------------|---------------|
+| R440         | —                | 80 (12.72%)   |
+| R441         | —                | 98 (15.58%)   |
+| R442         | —                | 19 (3.02%)    |
+| R443         | —                | 93 (14.79%)   |
+| R448         | —                | 46 (7.31%)    |
+| F220         | —                | 327 (51.99%)  |
+| F228         | —                | 14 (2.23%)    |
+
+The mapping table of BPSD-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
 
 ---
 
@@ -332,7 +344,7 @@ All patients meeting either inclusion criterion are included in the **CEB Data W
 
 Dataflow in xml format (Draw.io) can be found [here](images/format/flow_diagram.drawio).
 
-![Dataflow diagram](images/format/flow_diagram.png)
+![Dataflow diagram](images/dataflow/251231/flowchart-251231-rama.png)
 
 ---
 
@@ -345,24 +357,25 @@ Dataflow in xml format (Draw.io) can be found [here](images/format/flow_diagram.
 
 The table below shows the number of patients (*n*) and percentage (%) by subtype at index date and at final observation.
 
-| Subtype | Index *n* (%) | Final *n* (%) |
-|:---|:---|:---|
-| Alzheimer's Disease | — | — |
-| Vascular Dementia | — | — |
-| Unspecified | — | — |
-| Other Dementia | — | — |
-| Mixed Dementia | — | — |
-| **Total** | **—** | **—** |
+| Subtype             | Index n (%)     | Final n (%)     |
+|---------------------|-----------------|-----------------|
+| Alzheimer's Disease | 3459 (21.70%)   | 5051 (31.69%)   |
+| Vascular Dementia   | 1038 (6.51%)    | 1335 (8.38%)    |
+| Unspecified         | 9565 (60.01%)   | 5688 (35.68%)   |
+| Other Dementia      | 1757 (11.02%)   | 1807 (11.34%)   |
+| Mixed Dementia      | 121 (0.76%)     | 2059 (12.92%)   |
+| Total               | 15940 (100.00%) | 15940 (100.00%) |
+
 
 ### Transitions
 
 The table below shows how initial subtype labels transition to final subtype labels. Rows are index subtypes; columns are final subtypes. Values are *n* (%).
 
-| Index \ Final | AD | VaD | Unspecified | Mixed | Other | **Row Total** |
-|-|-|-|-|-|-|-|
-| AD | — | — | — | — | — | **—** |
-| VaD | — | — | — | — | — | **—** |
-| Unspecified | — | — | — | — | — | **—** |
-| Mixed | — | — | — | — | — | **—** |
-| Other | — | — | — | — | — | **—** |
-| **Column Total** | **—** | **—** | **—** | **—** | **—** | **—** |
+| Index \ Final   |   Row Total | AD            | VaD          | Unspecified   | Mixed         | Other         |
+|-----------------|-------------|---------------|--------------|---------------|---------------|---------------|
+| AD              |        3459 | 2921 (84.45%) | 0 (0.00%)    | 0 (0.00%)     | 538 (15.55%)  | 0 (0.00%)     |
+| VaD             |        1038 | 0 (0.00%)     | 774 (74.57%) | 0 (0.00%)     | 264 (25.43%)  | 0 (0.00%)     |
+| Unspecified     |        9565 | 2130 (22.27%) | 561 (5.87%)  | 5688 (59.47%) | 1014 (10.60%) | 172 (1.80%)   |
+| Mixed           |         121 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)     | 121 (100.00%) | 0 (0.00%)     |
+| Other           |        1757 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)     | 122 (6.94%)   | 1635 (93.06%) |
+| Column Total    |       15940 | 5051          | 1335         | 5688          | 2059          | 1807          |

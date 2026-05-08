@@ -1,0 +1,15 @@
+code,match_type,procedure_group,exclude_reason,note
+9221,exact,Radiotherapy Course,Radiotherapy differential,Superficial radiation
+9222,exact,Radiotherapy Course,Radiotherapy differential,Orthovoltage radiation
+9223,exact,Radiotherapy Course,Radiotherapy differential,Radioisotope teleradiotherapy
+9224,exact,Radiotherapy Course,Radiotherapy differential,Teleradiotherapy using photons
+9225,exact,Radiotherapy Course,Radiotherapy differential,Teleradiotherapy using electrons
+9226,exact,Radiotherapy Course,Radiotherapy differential,Teleradiotherapy using other particles
+9227,exact,Radiotherapy Course,Radiotherapy differential,Implantation or insertion of radioactive elements
+9229,exact,Radiotherapy Course,Radiotherapy differential,Other radiotherapy
+9230,exact,Radiotherapy Course,Radiotherapy differential,Stereotactic radiosurgery NOS
+9231,exact,Radiotherapy Course,Radiotherapy differential,Single source photon radiosurgery
+9232,exact,Radiotherapy Course,Radiotherapy differential,Multi-source photon radiosurgery Gamma Knife
+9233,exact,Radiotherapy Course,Radiotherapy differential,Particulate radiosurgery
+9239,exact,Radiotherapy Course,Radiotherapy differential,Stereotactic radiosurgery NEC
+9241,exact,Radiotherapy Course,Radiotherapy differential,Intraoperative electron radiation therapy

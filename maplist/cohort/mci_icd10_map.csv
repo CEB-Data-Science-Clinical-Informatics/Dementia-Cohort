@@ -1,0 +1,4 @@
+code,match_type,group_name,exclude_reason,note
+F067,exact,MCI,MCI differential,AChEI patients with any lifetime MCI history are excluded from inferred dementia
+R41,exact,MCI,MCI differential,AChEI patients with any lifetime MCI history are excluded from inferred dementia
+R418,exact,MCI,MCI differential,AChEI patients with any lifetime MCI history are excluded from inferred dementia

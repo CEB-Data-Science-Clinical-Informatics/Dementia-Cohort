@@ -1,0 +1,2 @@
+code,match_type,group_name,exclude_reason,note
+F20,prefix,Schizophrenia,Schizophrenia differential,Exclude memantine-inferred dementia when schizophrenia diagnosis history exists
