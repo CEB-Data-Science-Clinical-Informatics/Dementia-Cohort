@@ -330,6 +330,10 @@ The final label follows the same logic as the initial label but applied across t
 
 All patients meeting either inclusion criterion are included in the **CEB Data Warehouse – Dementia Theme**. Only adult patients aged **18 years or older** on the index date are included. The cohort covers the period from **1 January 2010 to 31 December 2025**.
 
+Dataflow in xml format (Draw.io) can be found [here](images/format/flow_diagram.drawio).
+
+![Dataflow diagram](images/format/flow_diagram.png)
+
 ---
 
 ## Subtype Distribution

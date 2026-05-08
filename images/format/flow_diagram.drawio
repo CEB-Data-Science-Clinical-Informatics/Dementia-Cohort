@@ -1,0 +1,153 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram name="Page-1" id="xycN8-_EJCtG6eRne0xO">
+    <mxGraphModel dx="1106" dy="718" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PQIzktBSELMzTgXx7_lF-2" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;fontStyle=1;fontSize=13;" value="Hospital Data Warehouse" vertex="1">
+          <mxGeometry height="90" width="200" x="627" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" value="ICD-10-TM" vertex="1">
+          <mxGeometry height="60" width="160" x="427" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" value="Medication" vertex="1">
+          <mxGeometry height="60" width="160" x="867" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" value="Degenerative / Uncertain&#xa;(G31*, G312, G32*, G328)" vertex="1">
+          <mxGeometry height="60" width="200" x="60" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" value="BPSD / Hallucinations&#xa;(R44*, F22*)" vertex="1">
+          <mxGeometry height="60" width="200" x="60" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" value="MCI&#xa;(F067, R41, R418)" vertex="1">
+          <mxGeometry height="60" width="200" x="60" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="AChEI&#xa;(Donepezil, Rivastigmine,&#xa;Galantamine)" vertex="1">
+          <mxGeometry height="70" width="160" x="767" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Memantine" vertex="1">
+          <mxGeometry height="70" width="160" x="987" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" value="Inferred Diagnosis&#xa;(Unspecified)" vertex="1">
+          <mxGeometry height="60" width="160" x="867" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" value="ICD Only" vertex="1">
+          <mxGeometry height="60" width="140" x="437" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" value="Both&#xa;(ICD + Medication)" vertex="1">
+          <mxGeometry height="60" width="160" x="627" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" value="Medication Only&#xa;(Inferred)" vertex="1">
+          <mxGeometry height="60" width="160" x="867" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" value="Dementia Cohort" vertex="1">
+          <mxGeometry height="70" width="260" x="577" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-15" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-2" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-16" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-2" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-17" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-2" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="PQIzktBSELMzTgXx7_lF-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="85" />
+              <mxPoint x="370" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-18" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-2" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="PQIzktBSELMzTgXx7_lF-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="85" />
+              <mxPoint x="370" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-19" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-2" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="PQIzktBSELMzTgXx7_lF-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="85" />
+              <mxPoint x="370" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-20" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-4" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-21" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-4" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-22" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-8" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="847" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-23" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-9" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1067" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-24" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-37" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="PQIzktBSELMzTgXx7_lF-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="847" y="580" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-25" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-38" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="PQIzktBSELMzTgXx7_lF-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1067" y="580" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-26" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-3" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-27" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-3" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="PQIzktBSELMzTgXx7_lF-12">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="507" y="690" />
+              <mxPoint x="707" y="690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-28" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-10" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="PQIzktBSELMzTgXx7_lF-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-29" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-10" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-30" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-11" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-31" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-12" style="edgeStyle=orthogonalEdgeStyle;" target="PQIzktBSELMzTgXx7_lF-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-32" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-13" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="PQIzktBSELMzTgXx7_lF-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-33" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="850" y="485" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-34" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Exclude if:&#xa;MCI in history&#xa;(F067, R41, R418)" vertex="1">
+          <mxGeometry height="70" width="160" x="600" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-35" edge="1" parent="1" source="PQIzktBSELMzTgXx7_lF-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1070" y="485" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-36" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Exclude if:&#xa;- Radiotherapy overlap&#xa;- Schizo / Clozapine" vertex="1">
+          <mxGeometry height="70" width="160" x="1170" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-37" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="AChEI&#xa;(Donepezil, Rivastigmine,&#xa;Galantamine)" vertex="1">
+          <mxGeometry height="70" width="160" x="767" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="PQIzktBSELMzTgXx7_lF-38" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="Memantine" vertex="1">
+          <mxGeometry height="70" width="160" x="987" y="510" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
