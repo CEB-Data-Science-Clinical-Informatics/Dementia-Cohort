@@ -7,7 +7,16 @@
 - [Dementia Data Warehouse](#dementia-data-warehouse)
   - [Contents](#contents)
   - [Dementia Data Warehouse](#dementia-data-warehouse-1)
+    - [2010-2025/12 (16 years)](#2010-202512-16-years)
+      - [Data Flow](#data-flow)
   - [Dementia cohort update](#dementia-cohort-update)
+    - [Data Warehouse Timeline](#data-warehouse-timeline)
+      - [ETL timeline](#etl-timeline)
+      - [Subtypes](#subtypes)
+    - [Supplementary](#supplementary)
+      - [Code](#code)
+      - [Maplist](#maplist)
+      - [Data Request](#data-request)
 ---
 
 ## Dementia Data Warehouse
@@ -50,6 +59,14 @@ As mentioned in cohort identification documentation, patients can be classified 
 ![Subtypes](images/dataflow/251231/index_final_202512.png)
 
 ### Supplementary
+
+#### Code
+
+The example code used in CEB data warehouse can be found in the code folder.
+
+|Type|Usage|Link|
+|---|---|---|
+|Cohort identification|Example code for cohort identification|[here](code/cohort_identification.py)|
 
 #### Maplist
 
