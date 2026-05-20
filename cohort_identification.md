@@ -245,6 +245,7 @@ These codes cover mild cognitive impairment and related conditions. They are ide
 | Code Group   | Exclusion Note   | (n = 4989)     |
 |--------------|------------------|----------------|
 | F067         | —                | 4826 (96.73%)  |
+| R41*         | —                | 762 (14.04%)   |
 | R418         | —                | 219 (4.39%)    |
 
 The mapping table of MCI-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
