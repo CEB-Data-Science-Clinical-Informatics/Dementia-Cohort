@@ -62,17 +62,14 @@ surgery_path = str(Path(datalake) / "surgery")
 # Shared utilities
 # =============================================================================
 def _normalize_code_expr(expr: pl.Expr) -> pl.Expr:
-    """Normalize a code expression to uppercase alphanumeric text."""
     return expr.cast(pl.Utf8).str.to_uppercase().str.replace_all(r"[^A-Z0-9]", "")
 
 
 def _normalize_code_value(code: str) -> str:
-    """Normalize a single code value to uppercase alphanumeric text."""
     return re.sub(r"[^A-Z0-9]", "", str(code).upper())
 
 
 def _scan_file(file_path: str) -> pl.LazyFrame:
-    """Return a Polars lazy scanner for CSV or Parquet input files."""
     lower = file_path.lower()
     if lower.endswith(".csv") or lower.endswith(".csv.gz"):
         return pl.scan_csv(file_path)
@@ -80,7 +77,6 @@ def _scan_file(file_path: str) -> pl.LazyFrame:
 
 
 def _build_prefix_regex(prefixes: list[str]) -> str:
-    """Build a regex pattern that matches any code prefix in the input list."""
     escaped = [re.escape(p) for p in prefixes if p]
     if not escaped:
         raise ValueError("No diagnosis prefixes were found in mapping CSV files.")
@@ -91,7 +87,6 @@ def _build_prefix_regex(prefixes: list[str]) -> str:
 # Diagnosis processing
 # =============================================================================
 def load_diagnosis_prefixes(map_dir: Path = MAP_DIR) -> list[str]:
-    """Load and normalize diagnosis prefixes from mapping CSV files."""
     map_files = [
         map_dir / "dementia_icd10_map.csv",
         map_dir / "mci_icd10_map.csv",
@@ -124,9 +119,9 @@ def read_diagnosis_working_df(
     """Read and filter diagnosis records to a compact patient-date-code working table.
 
     Output schema:
-    - ENC_HN: patient identifier
-    - D001KEY: diagnosis/event date (datetime)
-    - D035KEY: ICD-10 diagnosis code(s), normalized and comma-joined per date
+    - ENC_HN
+    - D001KEY (datetime)
+    - D035KEY (comma-joined normalized codes on that date)
     """
     files = sorted(glob(os.path.join(diagnosis_dir, "*")))
     files = [f for f in files if os.path.isfile(f)]
@@ -181,7 +176,6 @@ def read_diagnosis_working_df(
 
 
 def _load_prefixes_from_map(file_path: Path, code_col: str = "code") -> list[str]:
-    """Load normalized unique prefixes from a mapping file code column."""
     if not file_path.exists():
         return []
     df = pl.read_csv(str(file_path))
@@ -196,14 +190,12 @@ def _load_prefixes_from_map(file_path: Path, code_col: str = "code") -> list[str
 
 
 def _prefix_match_expr(code_expr: pl.Expr, prefixes: list[str]) -> pl.Expr:
-    """Create a Polars expression that matches values by any prefix."""
     if not prefixes:
         return pl.lit(False)
     return pl.any_horizontal([code_expr.str.starts_with(prefix) for prefix in prefixes])
 
 
 def _get_diagnosis_prefix_groups(map_dir: Path = MAP_DIR) -> dict[str, list[str]]:
-    """Build grouped diagnosis prefix lists used for dementia subtype labeling."""
     dementia_map = pl.read_csv(str(map_dir / "dementia_icd10_map.csv"))
     dementia_map = dementia_map.with_columns(
         _normalize_code_expr(pl.col("code")).alias("code"),
@@ -267,7 +259,6 @@ def add_diagnosis_labels_to_working(dx_working_df: pl.DataFrame, map_dir: Path =
 
 
 def save_pl_dataset(df: pl.DataFrame, output_path: Path) -> None:
-    """Write a Polars DataFrame to parquet, creating parent folders if needed."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.write_parquet(str(output_path))
 
@@ -286,6 +277,9 @@ def build_diagnosis_summary(dx_working_df: pl.DataFrame, map_dir: Path = MAP_DIR
                 "mci_date": [],
                 "schizophrenia_date": [],
                 "has_mci_history": [],
+                "has_mci_f067_history": [],
+                "has_mci_r41_history": [],
+                "has_mci_r418_history": [],
                 "has_schizophrenia_history": [],
             }
         )
@@ -309,6 +303,9 @@ def build_diagnosis_summary(dx_working_df: pl.DataFrame, map_dir: Path = MAP_DIR
         _prefix_match_expr(code_expr, groups["unspecified"]).alias("is_unspecified"),
         code_expr.str.starts_with("F03").alias("is_f03"),
         _prefix_match_expr(code_expr, groups["mci"]).alias("is_mci"),
+        (code_expr == "F067").alias("is_mci_f067"),
+        code_expr.str.starts_with("R41").alias("is_mci_r41"),
+        (code_expr == "R418").alias("is_mci_r418"),
         _prefix_match_expr(code_expr, groups["schizophrenia"]).alias("is_schizophrenia"),
     )
 
@@ -321,20 +318,20 @@ def build_diagnosis_summary(dx_working_df: pl.DataFrame, map_dir: Path = MAP_DIR
         pl.when(pl.col("is_mci")).then(pl.col("D001KEY")).otherwise(None).min().alias("mci_date"),
         pl.when(pl.col("is_schizophrenia")).then(pl.col("D001KEY")).otherwise(None).min().alias("schizophrenia_date"),
         pl.col("is_mci").any().alias("has_mci_history"),
+        pl.col("is_mci_f067").any().alias("has_mci_f067_history"),
+        pl.col("is_mci_r41").any().alias("has_mci_r41_history"),
+        pl.col("is_mci_r418").any().alias("has_mci_r418_history"),
         pl.col("is_schizophrenia").any().alias("has_schizophrenia_history"),
     )
 
 
-# Step 1: Set working directory and analysis window.
 os.chdir(PROJECT_ROOT)
 
 start = datetime.strptime("20100101", "%Y%m%d")
 end = datetime.strptime("20251231", "%Y%m%d")
 
-# Step 2: Load diagnosis code prefixes from mapping files.
 icd10_prefixes = load_diagnosis_prefixes(MAP_DIR)
 
-# Step 3: Build diagnosis working table and patient-level diagnosis summary.
 dx_working_pl = read_diagnosis_working_df(
     diagnosis_dir=diagnosis_path,
     prefixes=icd10_prefixes,
@@ -349,7 +346,6 @@ dx_summary_pl = build_diagnosis_summary(dx_working_pl, MAP_DIR)
 print(f"number of patients in diagnosis summary: {dx_summary_pl.height}")
 print(f"number of unique patients: {dx_working_pl.select(pl.col('ENC_HN').n_unique()).item()}")
 
-# Step 4: Convert diagnosis outputs to pandas and save intermediate datasets.
 # Keep pandas as the default objects for downstream line-by-line work.
 dx_working = dx_working_pl.to_pandas()
 dx_summary = dx_summary_pl.to_pandas()
@@ -357,7 +353,6 @@ dx_summary = dx_summary_pl.to_pandas()
 save_pl_dataset(dx_working_pl, DATA_DIR / "dx_working.parquet")
 save_pl_dataset(dx_summary_pl, DATA_DIR / "dx_summary.parquet")
 
-# Step 5: Keep ICD10-confirmed dementia branch for flow counts.
 # ICD10-confirmed dementia branch from the flowdiagram.
 dx_dementia_patients = dx_summary.loc[
     dx_summary["diagnosis_date"].notna(),
@@ -371,7 +366,6 @@ print(f"number of ICD10 dementia patients: {dx_dementia_patients.shape[0]}")
 # =============================================================================
 
 def _list_medication_files(order_dir: str, med_dir: str) -> list[str]:
-    """List medication/order parquet files included in medication processing."""
     order_files = sorted(glob(os.path.join(order_dir, "*.parquet.gzip")))
     order_files = [
         f for f in order_files
@@ -382,7 +376,6 @@ def _list_medication_files(order_dir: str, med_dir: str) -> list[str]:
 
 
 def _load_medication_maps(map_dir: Path = MAP_DIR) -> tuple[dict[str, str], set[str]]:
-    """Load medication class mapping and optional clozapine code set."""
     med_map = pl.read_csv(str(map_dir / "medication_map.csv"))
     med_map = med_map.with_columns(
         _normalize_code_expr(pl.col("drug_code")).alias("drug_code"),
@@ -407,12 +400,6 @@ def _load_medication_maps(map_dir: Path = MAP_DIR) -> tuple[dict[str, str], set[
 
 
 def _standardize_med_file(file_path: str) -> pl.DataFrame:
-    """Standardize one medication/order file to ENC_HN, REC_DATE, CODE format.
-
-    Notes:
-    - REC_DATE is the normalized medication/order date.
-    - CODE is a intrainstitutional medication code.
-    """
     lf = _scan_file(file_path)
     schema_names = set(lf.collect_schema().names())
 
@@ -543,7 +530,6 @@ def build_medication_summary(med_working_df: pl.DataFrame) -> pl.DataFrame:
 
 
 def _list_procedure_files(*dirs: str) -> list[str]:
-    """List unique procedure parquet files from one or more source directories."""
     files: list[str] = []
     for directory in dirs:
         files.extend(sorted(glob(os.path.join(directory, "*.parquet.gzip"))))
@@ -551,7 +537,6 @@ def _list_procedure_files(*dirs: str) -> list[str]:
 
 
 def profile_procedure_sources(procedure_dirs: list[str], max_files_per_dir: int = 3) -> dict[str, dict[str, object]]:
-    """Profile procedure sources by file counts and sample schemas for QA."""
     profile: dict[str, dict[str, object]] = {}
     for directory in procedure_dirs:
         files = sorted(glob(os.path.join(directory, "*.parquet.gzip")))
@@ -575,7 +560,6 @@ def profile_procedure_sources(procedure_dirs: list[str], max_files_per_dir: int 
 
 
 def _load_radiotherapy_codes(map_dir: Path = MAP_DIR) -> set[str]:
-    """Load normalized radiotherapy ICD9 codes from mapping CSV."""
     file_path = map_dir / "radiotherapy_icd9_map.csv"
     if not file_path.exists():
         return set()
@@ -590,14 +574,12 @@ def _load_radiotherapy_codes(map_dir: Path = MAP_DIR) -> set[str]:
 
 
 def _build_prefix_match_expr(code_expr: pl.Expr, prefixes: list[str]) -> pl.Expr:
-    """Create a Polars expression that matches values by any prefix."""
     if not prefixes:
         return pl.lit(False)
     return pl.any_horizontal([code_expr.str.starts_with(prefix) for prefix in prefixes])
 
 
 def _standardize_procedure_file(file_path: str) -> pl.DataFrame:
-    """Standardize one operation/surgery file to ENC_HN, PROC_DATE, PROC_CODE."""
     lf = _scan_file(file_path)
     schema_names = set(lf.collect_schema().names())
 
@@ -616,7 +598,7 @@ def _standardize_procedure_file(file_path: str) -> pl.DataFrame:
         ]
     )
 
-    # Operation table: ICD-9 procedure codes are in D036KEY.
+    # Operation table: ICD9 in D036KEY
     if "D036KEY" in schema_names:
         return (
             lf.select(["ENC_HN", "D001KEY", "D036KEY"])
@@ -632,7 +614,7 @@ def _standardize_procedure_file(file_path: str) -> pl.DataFrame:
             .collect()
         )
 
-    # Surgery table: ICD-9 procedure codes are spread across OPR_* columns.
+    # Surgery table: ICD9 codes spread across OPR_* columns.
     opr_cols = sorted([c for c in schema_names if c.startswith("OPR_")])
     if opr_cols:
         return (
@@ -720,6 +702,9 @@ def apply_exact_criteria(
         "mci_date",
         "schizophrenia_date",
         "has_mci_history",
+        "has_mci_f067_history",
+        "has_mci_r41_history",
+        "has_mci_r418_history",
         "has_schizophrenia_history",
     ]
     med_cols = [
@@ -738,7 +723,14 @@ def apply_exact_criteria(
     merged = dx_base.merge(med_base, on="ENC_HN", how="outer")
     merged = merged.merge(rt_base, on="ENC_HN", how="left")
 
-    bool_cols = ["has_mci_history", "has_schizophrenia_history", "has_clozapine_history"]
+    bool_cols = [
+        "has_mci_history",
+        "has_mci_f067_history",
+        "has_mci_r41_history",
+        "has_mci_r418_history",
+        "has_schizophrenia_history",
+        "has_clozapine_history",
+    ]
     for col in bool_cols:
         if col not in merged.columns:
             merged[col] = False
@@ -796,6 +788,9 @@ def apply_exact_criteria(
         "achei_patients": int(merged["is_achei_candidate"].sum()),
         "memantine_patients": int(merged["is_memantine_candidate"].sum()),
         "achei_excluded_mci": int(merged["exclude_mci_achei"].sum()),
+        "achei_excluded_mci_f067": int((merged["exclude_mci_achei"] & merged["has_mci_f067_history"]).sum()),
+        "achei_excluded_mci_r41": int((merged["exclude_mci_achei"] & merged["has_mci_r41_history"]).sum()),
+        "achei_excluded_mci_r418": int((merged["exclude_mci_achei"] & merged["has_mci_r418_history"]).sum()),
         "achei_left": int(merged["achei_left"].sum()),
         "memantine_excluded_schizo": int(merged["exclude_schizophrenia_memantine"].sum()),
         "memantine_after_schizo": int(merged["memantine_after_schizo"].sum()),
@@ -809,7 +804,6 @@ def apply_exact_criteria(
     return merged, exact_med_evaluated, inferred_unspecified, final_cohort, exact_counts
 
 
-# Step 6: Build medication working table and medication summary.
 med_working_pl = read_medication_working_df(
     order_dir=order_path,
     med_dir=medication_path,
@@ -822,7 +816,6 @@ print(f"number of medication records: {med_working_pl.height}")
 med_summary_pl = build_medication_summary(med_working_pl)
 print(f"number of patients in medication summary: {med_summary_pl.height}")
 
-# Step 7: Convert medication outputs to pandas and save intermediate datasets.
 # Keep pandas as the default objects for downstream line-by-line work.
 med_working = med_working_pl.to_pandas()
 med_summary = med_summary_pl.to_pandas()
@@ -841,7 +834,6 @@ print(f"number of medication dementia patients: {med_dementia_patients.shape[0]}
 # Exact criteria application and cohort outputs
 # =============================================================================
 
-# Step 8: Profile operation/surgery schemas, then build radiotherapy datasets.
 operation_source_profile = profile_procedure_sources(
     procedure_dirs=[operation_path],
     max_files_per_dir=3,
@@ -869,7 +861,6 @@ rt_summary = rt_summary_pl.to_pandas()
 save_pl_dataset(rt_working_pl, DATA_DIR / "rt_working.parquet")
 save_pl_dataset(rt_summary_pl, DATA_DIR / "rt_summary.parquet")
 
-# Step 9: Apply exact exclusion criteria and generate final cohort tables.
 exact_base, exact_med_evaluated, inferred_unspecified, final_cohort, exact_counts = apply_exact_criteria(
     dx_summary_df=dx_summary,
     med_summary_df=med_summary,
@@ -885,7 +876,6 @@ final_cohort.to_parquet(DATA_DIR / "final_cohort_exact_step.parquet", index=Fals
 # Flow Charts
 # =============================================================================
 
-# Step 10: Persist exact-criteria metrics and print flow summaries for QA.
 # Persist exact-criteria count metrics for auditing and reproducibility.
 exact_counts_df = pl.DataFrame(
     {
@@ -958,6 +948,9 @@ exclusion_rows = [
     ["", ""],
     ["AChEI patients", exact_counts["achei_patients"]],
     ["AChEI excluded by MCI", exact_counts["achei_excluded_mci"]],
+    ["  F067", exact_counts["achei_excluded_mci_f067"]],
+    ["  R41*", exact_counts["achei_excluded_mci_r41"]],
+    ["  R418", exact_counts["achei_excluded_mci_r418"]],
     ["AChEI left", exact_counts["achei_left"]],
     ["", ""],
     ["Memantine patients", exact_counts["memantine_patients"]],
@@ -1019,6 +1012,9 @@ print(tabulate(exclusion_rows, headers=["Step", "Patients"], tablefmt="github"))
 # |                                               |            |
 # | AChEI patients                                | 9443       |
 # | AChEI excluded by MCI                         | 1741       |
+# | F067                                          | 1625       |
+# | R41*                                          | 172        |
+# | R418                                          | 42         |
 # | AChEI left                                    | 7702       |
 # |                                               |            |
 # | Memantine patients                            | 3532       |
@@ -1029,12 +1025,12 @@ print(tabulate(exclusion_rows, headers=["Step", "Patients"], tablefmt="github"))
 # |                                               |            |
 # | Medication excluded patients (total)          | 1383       |
 # | Medication qualifying patients                | 8957       |
+# | Inferred diagnosis patients                   | 3169       |
 
 # =============================================================================
 # Index Dataframe construction and subtype classification
 # =============================================================================
 
-# Step 11: Build index table and enforce age filter at index date.
 # Index date = earlier of diagnosis date and qualified medication date.
 final_cohort["index_date"] = final_cohort[["diagnosis_date", "medication_date"]].min(axis=1)
 
@@ -1095,7 +1091,6 @@ dementia_index = dementia_index.loc[flag, :].copy()
 dementia_index.to_parquet(DATA_DIR / "dementia_index.parquet", index=False)
 
 
-# Step 12: Assign subtype labels at index and across full follow-up.
 # =============================================================================
 # Label assignment on dementia_index (subtype classification rules)
 # =============================================================================
@@ -1129,7 +1124,6 @@ dementia_index_labelled.to_parquet(DATA_DIR / "dementia_index_labelled.parquet",
 
 
 
-# Step 13: Generate subtype distribution and transition summaries.
 # =============================================================================
 # Subtype distribution and transition summaries
 # =============================================================================

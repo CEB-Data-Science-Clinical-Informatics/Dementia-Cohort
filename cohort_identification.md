@@ -1,7 +1,7 @@
 # Dementia Cohort Identification
 
 - **Author:** Htun Teza
-- **Date:** 8 May 2026
+- **Date:** 8 June 2026
 
 > [!IMPORTANT]
 > Please be aware that the information provided here is current as of the date of this documentation. However, it is subject to potential changes or updates in the future.
@@ -13,7 +13,6 @@
   - [Data Source](#data-source)
   - [Loosely Defined Criteria](#loosely-defined-criteria)
   - [Exactly Defined Criteria](#exactly-defined-criteria)
-  - [Codes Under Review](#codes-under-review)
   - [Subtype Classification](#subtype-classification)
   - [Final Cohort](#final-cohort)
   - [Subtype Distribution](#subtype-distribution)
@@ -84,7 +83,23 @@ Groups 1 and 2 are considered to have a confirmed diagnosis of dementia. However
 
 ### Inferred Diagnosis of Dementia
 
-Patients prescribed anti-dementia medications without a corresponding ICD-10 dementia diagnosis require further review before a dementia diagnosis can be inferred. The medication arm is split into two groups — **AChEI** (Donepezil, Rivastigmine, Galantamine) and **Memantine** — which are assessed separately against their respective exclusion criteria. Patients may appear in both groups if prescribed both drug classes. After exclusions, the remaining patients from both groups are merged into the **Unspecified (Inferred)** dementia group.
+Patients prescribed anti-dementia medications require further review before a dementia diagnosis can be inferred from medication records alone. The aim is to exclude medication prescriptions that may plausibly be explained by alternative diagnoses or indications, thereby refining the medication-based identification arm to patients with a reasonable inferred diagnosis of dementia.
+
+Importantly, these exclusion rules are applied to determine whether medication use can be interpreted as evidence of dementia. They do not necessarily remove the patient from the overall dementia cohort if the patient also has a qualifying ICD-10 dementia diagnosis.
+
+#### Scenario 1: Both ICD-10 and Medication
+
+For patients with both ICD-10 dementia codes and anti-dementia medication prescriptions, the presence of alternative diagnoses means that the medication record cannot used to infer dementia. In these cases, the patient is retained through the ICD-10 diagnosis pathway, and the earliest qualifying ICD-10 dementia date is used as the index date.
+
+![Exclusion: Both ICD and Med](images/documentation/exc_both_icd_med.png)
+
+#### Scenario 2: Only Medication
+
+For patients with only anti-dementia medication prescriptions and no corresponding ICD-10 dementia code, the presence of alternative diagnoses means that dementia cannot be inferred from medication alone. Therefore, exclusion rules are applied to remove such cases from the medication-only inferred dementia group.
+
+![Exclusion: Only Med](images/documentation/exc_only_med.png)
+
+The medication arm is split into two groups — **AChEI** (Donepezil, Rivastigmine, Galantamine) and **Memantine** — which are assessed separately against their respective exclusion criteria. Patients may appear in both groups if prescribed both drug classes. After exclusions, the remaining patients from both groups are merged into the **Unspecified (Inferred)** dementia group.
 
 #### AChEI Group
 
@@ -109,8 +124,6 @@ The mapping table of schizophrenia-related ICD-10-TM codes can be found in the m
 
 ##### Radiotherapy
 
-###### Method 1 — ICD-9-CM Procedure Codes
-
 The course of radiotherapy is identified using the following ICD-9-CM procedure codes:
 
 | ICD-9-CM Code | Description |
@@ -131,39 +144,7 @@ The course of radiotherapy is identified using the following ICD-9-CM procedure 
 | 9241 | Intraoperative electron radiation therapy |
 
 > [!NOTE]
-> At this stage, any Memantine prescription recorded during a course of radiotherapy — regardless of the body site irradiated — is excluded from consideration as a dementia indicator. Refinement of this criterion to restrict exclusion to **brain** radiotherapy specifically (by combining radiotherapy procedure codes with co-occurring brain tumour or brain metastasis diagnosis codes) is deferred to a subsequent meeting.
-
-###### Method 2 (Alternative) — Billing Codes Specific to Institution
-
-The following billing codes are specific to Ramathibodi Hospital. Each participating institution is expected to identify and confirm their equivalent billing codes for radiotherapy delivery.
-
-| Billing Code | Procedure Name | Translation |
-|:---|:---|:---|
-| X00568 | การฉายรังสีด้วยเครื่อง Co-60 | Co-60 radiotherapy |
-| X00569 | การฉายแสงด้วยเครื่องเร่งอนุภาค | Linear accelerator radiotherapy |
-| X00572 | การใส่แร่อิริเดียม (Insertion) | Iridium brachytherapy insertion |
-| X00576 | การฝังแร่อิริเดียม (Implantation) first loading | Iridium brachytherapy implantation — first loading |
-| X00577 | การฝังแร่อิริเดียม (Implantation) next loading | Iridium brachytherapy implantation — subsequent loading |
-| X00579 | การฉายแสงทั้งตัว (Total Body Irradiation) | Total body irradiation |
-| X00825 | ค่าฉายรังสี Stereotactic Radiosurgery or Stereotactic Radiotherapy (Brain/Spine) | Stereotactic radiosurgery/radiotherapy — Brain/Spine |
-| X00826 | ค่าฉายรังสี Stereotactic Radiosurgery or Stereotactic Radiotherapy | Stereotactic radiosurgery/radiotherapy |
-| X00827 | ค่าฉายรังสี Stereotactic Radiosurgery or Stereotactic Radiotherapy | Stereotactic radiosurgery/radiotherapy |
-| X00829 | ค่าฉายรังสี Stereotactic for Brain/Spine 25 fractions | Stereotactic radiotherapy — Brain/Spine, 25 fractions |
-| X00833 | ค่าฉายรังสี Stereotactic Body Radiotherapy (SBRT) with Synchrony | SBRT with Synchrony |
-| X00974 | การฉายรังสี IMRT | IMRT |
-| X01372 | การฉายรังสีด้วย Orthovoltage | Orthovoltage radiotherapy |
-| X01374 | การฉายรังสี 2 มิติด้วยเครื่อง Linac (Electron) | 2D Linac radiotherapy (Electron) |
-| X01375 | การฉายรังสี 3D-CRT (Fraction) | 3D-CRT radiotherapy |
-| X01376 | การฉายรังสี IMRT (Fraction) | IMRT (per fraction) |
-| X01378 | การฉายรังสี SRT (Course) | Stereotactic radiotherapy (per course) |
-| X01380 | การฉายรังสี 4 มิติ (Fraction) | 4D radiotherapy |
-| X01557 | การฝังเครื่องมือรังสีระยะใกล้ | Brachytherapy device implantation |
-| X01558 | การใส่และการฝังเครื่องมือรังสีระยะใกล้ | Brachytherapy device insertion and implantation |
-| X01561 | การให้รังสีระยะใกล้ | Brachytherapy delivery |
-| X01562 | การให้รังสีระยะใกล้ แบบแผ่นที่ตา | Eye plaque brachytherapy |
-
-> [!NOTE]
-> These billing codes cover all radiotherapy delivery procedures at Ramathibodi Hospital and are not restricted by body site. Among these, X00825, X00826, X00827, and X00829 explicitly relate to brain/spine radiotherapy. Full restriction to brain radiotherapy for all modality codes requires linkage with co-occurring brain tumour or brain metastasis diagnosis codes, and is deferred to a subsequent meeting.
+> At this stage, any Memantine prescription recorded during a course of radiotherapy — regardless of the body site irradiated — is excluded from consideration as a dementia indicator. It is noted that the approach may overestimate however it allows the exclusion criteriato be standardized across centers.
 
 #### Merging into Inferred Diagnosis
 
@@ -203,80 +184,6 @@ The **index date** is defined as the earlier of the diagnosis date and the medic
 
 > [!NOTE]
 > **Unspecified Date** refers specifically to the earliest date of an ICD-10-TM F03 diagnosis code recorded in the patient's history. It does not reflect the medication date, which is captured separately in the **Medication Date** column. Patients identified solely through medication prescription without an F03 code will have a blank Unspecified Date regardless of their subtype label.
-
----
-
-## Codes Under Review
-
-The following codes were identified during the multi-site consensus meeting as potentially relevant but requiring further review before inclusion in the dementia cohort. These codes are extracted and reported separately. The distribution of codes (*n* and %) will be presented at the next meeting to inform the decision on inclusion.
-
-### Degenerative / Uncertain
-
-These codes were excluded from the dementia cohort pending further review, as they may reflect neurodegenerative conditions other than dementia.
-
-| ICD-10-TM Code | Description |
-|:---|:---|
-| G31\* | Other degenerative diseases of nervous system (all subcodes) |
-| G312 | Progressive isolated aphasia |
-| G32\* | Other degenerative disorders of nervous system in diseases classified elsewhere (all subcodes) |
-| G328 | Other specified degenerative disorders of nervous system in diseases classified elsewhere |
-
-| Code Group                | Exclusion Note                                                                             | (n = 1987)     |
-|---------------------------|--------------------------------------------------------------------------------------------|----------------|
-| G31*                      | —                                                                                          | 1927 (96.98%)  |
-| G31* excluding G318       | G318 Other Specified Degenerative Dementia (Lewy Bodies)                                   | 461 (23.20%)   |
-| G312                      | —                                                                                          | 35 (1.76%)     |
-| G32*                      | —                                                                                          | 71 (3.57%)     |
-| G32* excluding G232, G233 | G232 and G233 Multiple System Atrophy                                                      | 71 (3.57%)     |
-| G328                      | —                                                                                          | 62 (3.12%)     |
-
-The mapping table of degenerative/uncertain ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
-
-### Mild Cognitive Impairment (MCI)
-
-These codes cover mild cognitive impairment and related conditions. They are identified separately and are **not included** in the dementia cohort.
-
-| ICD-10-TM Code | Description |
-|:---|:---|
-| F067 | Mild cognitive disorder |
-| R41 | Other symptoms and signs involving cognitive functions and awareness |
-| R418 | Other and unspecified symptoms and signs involving cognitive functions and awareness |
-
-| Code Group   | Exclusion Note   | (n = 5429)     |
-|--------------|------------------|----------------|
-| F067         | —                | 4826 (88.89%) |
-| R41*         | —                | 762 (14.04%)  |
-| R418         | —                | 219 (4.03%)   |
-
-The mapping table of MCI-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
-
-### BPSD / Hallucinations
-
-These codes may reflect behavioural and psychological symptoms of dementia (BPSD) but are not specific to dementia. Coding practice varies across institutions. They are identified separately pending review.
-
-| ICD-10-TM Code | Description |
-|:---|:---|
-| R44 | Other symptoms and signs involving general sensations and perceptions |
-| R440 | Auditory hallucinations |
-| R441 | Visual hallucinations |
-| R442 | Other hallucinations |
-| R443 | Hallucinations, unspecified |
-| R448 | Other and unspecified symptoms and signs involving general sensations and perceptions |
-| F22 | Persistent delusional disorders |
-| F220 | Delusional disorder |
-| F228 | Other persistent delusional disorders |
-
-| Code Group   | Exclusion Note   | (n = 629)     |
-|--------------|------------------|---------------|
-| R440         | —                | 80 (12.72%)   |
-| R441         | —                | 98 (15.58%)   |
-| R442         | —                | 19 (3.02%)    |
-| R443         | —                | 93 (14.79%)   |
-| R448         | —                | 46 (7.31%)    |
-| F220         | —                | 327 (51.99%)  |
-| F228         | —                | 14 (2.23%)    |
-
-The mapping table of BPSD-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/review_code_map.csv).
 
 ---
 
