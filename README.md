@@ -1,22 +1,13 @@
 # Dementia Data Warehouse
 
 - **Author:** Htun Teza
-- **Date:** 8 May 2026
+- **Date:** 8 June 2026
 
 ## Contents
 - [Dementia Data Warehouse](#dementia-data-warehouse)
   - [Contents](#contents)
   - [Dementia Data Warehouse](#dementia-data-warehouse-1)
-    - [2010-2025/12 (16 years)](#2010-202512-16-years)
-      - [Data Flow](#data-flow)
   - [Dementia cohort update](#dementia-cohort-update)
-    - [Data Warehouse Timeline](#data-warehouse-timeline)
-      - [ETL timeline](#etl-timeline)
-      - [Subtypes](#subtypes)
-    - [Supplementary](#supplementary)
-      - [Code](#code)
-      - [Maplist](#maplist)
-      - [Data Request](#data-request)
 ---
 
 ## Dementia Data Warehouse
