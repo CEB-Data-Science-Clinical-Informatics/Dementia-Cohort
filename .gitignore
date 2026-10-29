@@ -1,2 +1,4 @@
 .DS_store
 cohort_identification_new.md
+data/
+__pycache__/

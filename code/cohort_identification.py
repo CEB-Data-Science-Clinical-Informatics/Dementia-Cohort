@@ -28,12 +28,15 @@ shutup.please()
 # Project paths and data sources
 # =============================================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MAP_DIR = PROJECT_ROOT / "map_list" / "cohort"
-DATA_DIR = PROJECT_ROOT / "data" / "251231"
+# Paths, window and delivery come from update_config.py (one file per update).
+# COHORT_DATALAKE_ROOT still overrides the governed delivery folder.
+from update_config import COHORT_START_DATE, END_DATE, MAP_DIR, STRICT_DIR, STRICT_ROOT
 
-# Set this in your shell before running, e.g. COHORT_DATALAKE_ROOT=/path/to/20251231_fu_vte_nc
-datalake = os.environ.get("COHORT_DATALAKE_ROOT", "")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = STRICT_DIR
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+datalake = os.environ.get("COHORT_DATALAKE_ROOT", str(STRICT_ROOT))
 diagnosis_path = str(Path(datalake) / "diagnosis")
 order_path = str(Path(datalake) / "order")
 medication_path = str(Path(datalake) / "medication")
@@ -147,7 +150,7 @@ def read_diagnosis_working_df(
             lf.select(["ENC_HN", "D001KEY", "D035KEY"])
             .with_columns(
                 [
-                    date_expr.alias("D001KEY"),
+                    date_expr.dt.truncate("1d").alias("D001KEY"),
                     _normalize_code_expr(pl.col("D035KEY")).alias("D035KEY"),
                 ]
             )
@@ -327,8 +330,8 @@ def build_diagnosis_summary(dx_working_df: pl.DataFrame, map_dir: Path = MAP_DIR
 
 os.chdir(PROJECT_ROOT)
 
-start = datetime.strptime("20100101", "%Y%m%d")
-end = datetime.strptime("20251231", "%Y%m%d")
+start = COHORT_START_DATE
+end = END_DATE
 
 icd10_prefixes = load_diagnosis_prefixes(MAP_DIR)
 
@@ -366,12 +369,21 @@ print(f"number of ICD10 dementia patients: {dx_dementia_patients.shape[0]}")
 # =============================================================================
 
 def _list_medication_files(order_dir: str, med_dir: str) -> list[str]:
+    # Validated medication files replace the order files of the years they cover.
+    # A delivery without a medication folder uses the order files of every year.
+    med_files = sorted(glob(os.path.join(med_dir, "*.parquet.gzip")))
+    validated_years = {
+        match.group(1)
+        for f in med_files
+        if (match := re.search(r"_(\d{4})\d{4}_\d{8}", os.path.basename(f)))
+    }
     order_files = sorted(glob(os.path.join(order_dir, "*.parquet.gzip")))
     order_files = [
         f for f in order_files
-        if not any(year in os.path.basename(f) for year in ["2023", "2024", "2025"])
+        if not any(year in os.path.basename(f) for year in validated_years)
     ]
-    med_files = sorted(glob(os.path.join(med_dir, "*.parquet.gzip")))
+    print(f"medication sources: {len(order_files)} order files, {len(med_files)} validated files "
+          f"(validated years: {sorted(validated_years) or 'none'})")
     return order_files + med_files
 
 
@@ -439,7 +451,8 @@ def _standardize_med_file(file_path: str) -> pl.DataFrame:
         lf.select(["ENC_HN", date_col, code_col])
         .with_columns(
             [
-                date_expr.alias("REC_DATE"),
+                # Medication evidence is day level: drop the time of the order.
+                date_expr.dt.truncate("1d").alias("REC_DATE"),
                 _normalize_code_expr(pl.col(code_col)).alias("CODE"),
             ]
         )
@@ -604,7 +617,7 @@ def _standardize_procedure_file(file_path: str) -> pl.DataFrame:
             lf.select(["ENC_HN", "D001KEY", "D036KEY"])
             .with_columns(
                 [
-                    date_expr.alias("PROC_DATE"),
+                    date_expr.dt.truncate("1d").alias("PROC_DATE"),
                     _normalize_code_expr(pl.col("D036KEY")).alias("PROC_CODE"),
                 ]
             )
@@ -619,7 +632,7 @@ def _standardize_procedure_file(file_path: str) -> pl.DataFrame:
     if opr_cols:
         return (
             lf.select(["ENC_HN", "D001KEY", *opr_cols])
-            .with_columns(date_expr.alias("PROC_DATE"))
+            .with_columns(date_expr.dt.truncate("1d").alias("PROC_DATE"))
             .unpivot(index=["ENC_HN", "PROC_DATE"], on=opr_cols, variable_name="OPR_COL", value_name="RAW_CODE")
             .with_columns(_normalize_code_expr(pl.col("RAW_CODE")).alias("PROC_CODE"))
             .select(["ENC_HN", "PROC_DATE", "PROC_CODE"])
@@ -970,37 +983,37 @@ print("\n=== Dementia Flow Summary (Final by Index Timing) ===")
 print(tabulate(flow_rows_index, headers=["Step", "Patients"], tablefmt="github"))
 # | Step                        | Patients   |
 # |-----------------------------|------------|
-# | ICD10 patients              | 12796      |
-# | Medication patients         | 10340      |
-# | ICD10 only (tentative)      | 6041       |
-# | Medication only (tentative) | 3585       |
-# | Both (tentative)            | 6755       |
-# | Total tentative dementia    | 16381      |
+# | ICD10 patients              | 13427      |
+# | Medication patients         | 10776      |
+# | ICD10 only (tentative)      | 6385       |
+# | Medication only (tentative) | 3734       |
+# | Both (tentative)            | 7042       |
+# | Total tentative dementia    | 17161      |
 # |                             |            |
-# | ICD10 patients              | 9885       |
-# | Medication patients         | 6849       |
-# | ICD10 only (final)          | 9116       |
-# | Medication only (final)     | 6080       |
-# | Both (final)                | 769        |
-# | Total dementia              | 15965      |
+# | ICD10 patients              | 10413      |
+# | Medication patients         | 7248       |
+# | ICD10 only (final)          | 9470       |
+# | Medication only (final)     | 6305       |
+# | Both (final)                | 943        |
+# | Total dementia              | 16718      |
 
 print("\n=== Dementia Flow Summary (Final by Availability) ===")
 print(tabulate(flow_rows_availability, headers=["Step", "Patients"], tablefmt="github"))
 # | Step                        | Patients   |
 # |-----------------------------|------------|
-# | ICD10 patients              | 12796      |
-# | Medication patients         | 10340      |
-# | ICD10 only (tentative)      | 6041       |
-# | Medication only (tentative) | 3585       |
-# | Both (tentative)            | 6755       |
-# | Total tentative dementia    | 16381      |
+# | ICD10 patients              | 13427      |
+# | Medication patients         | 10776      |
+# | ICD10 only (tentative)      | 6385       |
+# | Medication only (tentative) | 3734       |
+# | Both (tentative)            | 7042       |
+# | Total tentative dementia    | 17161      |
 # |                             |            |
-# | ICD10 patients              | 12796      |
-# | Medication patients         | 8957       |
-# | ICD10 only (final)          | 7008       |
-# | Medication only (final)     | 3169       |
-# | Both (final)                | 5788       |
-# | Total dementia              | 15965      |
+# | ICD10 patients              | 13427      |
+# | Medication patients         | 9254       |
+# | ICD10 only (final)          | 7464       |
+# | Medication only (final)     | 3291       |
+# | Both (final)                | 5963       |
+# | Total dementia              | 16718      |
 
 
 
@@ -1008,24 +1021,25 @@ print("\n=== Medication Exclusion Step-by-Step ===")
 print(tabulate(exclusion_rows, headers=["Step", "Patients"], tablefmt="github"))
 # | Step                                          | Patients   |
 # |-----------------------------------------------|------------|
-# | Medication patients evaluated                 | 10340      |
+# | Medication patients evaluated                 | 10776      |
 # |                                               |            |
-# | AChEI patients                                | 9443       |
-# | AChEI excluded by MCI                         | 1741       |
-# | F067                                          | 1625       |
-# | R41*                                          | 172        |
-# | R418                                          | 42         |
-# | AChEI left                                    | 7702       |
+# | AChEI patients                                | 9877       |
+# | AChEI excluded by MCI                         | 1885       |
+# | F067                                          | 1754       |
+# | R41*                                          | 196        |
+# | R418                                          | 46         |
+# | AChEI left                                    | 7992       |
 # |                                               |            |
-# | Memantine patients                            | 3532       |
-# | Memantine excluded by schizophrenia/clozapine | 38         |
-# | Memantine remaining after schizo              | 3494       |
+# | Memantine patients                            | 3562       |
+# | Memantine excluded by schizophrenia/clozapine | 39         |
+# | Memantine remaining after schizo              | 3523       |
 # | Memantine excluded by radiotherapy            | 45         |
-# | Memantine left                                | 3449       |
+# | Memantine left                                | 3478       |
 # |                                               |            |
-# | Medication excluded patients (total)          | 1383       |
-# | Medication qualifying patients                | 8957       |
-# | Inferred diagnosis patients                   | 3169       |
+# | Medication excluded patients (total)          | 1522       |
+# | Medication qualifying patients                | 9254       |
+# | Inferred diagnosis patients                   | 3291       |
+# Number of patients flagged for age at index < 18: 32
 
 # =============================================================================
 # Index Dataframe construction and subtype classification
@@ -1062,7 +1076,13 @@ dementia_index = dementia_index.rename(
 )
 
 
-demo = pd.read_parquet(datalake + "demographic/demographic_1_cleaned.parquet.gzip")
+# Use the cleaned demographic file when the delivery has one; otherwise all demographic files.
+demo_dir = Path(datalake) / "demographic"
+demo_files = [demo_dir / "demographic_1_cleaned.parquet.gzip"]
+if not demo_files[0].exists():
+    demo_files = sorted(demo_dir.glob("demographic_*.parquet.gzip"))
+demo_files = [f for f in demo_files if "D020AT3" in pl.scan_parquet(f).collect_schema().names()]
+demo = pd.concat([pd.read_parquet(f, columns=["ENC_HN", "D020AT3"]) for f in demo_files], ignore_index=True)
 demo = demo.loc[demo['ENC_HN'].isin(dementia_index['ENC_HN']), ['ENC_HN','D020AT3']]
 demo["D020AT3"] = demo["D020AT3"].astype(str).str.replace(".0", "", regex=False)
 demo["D020AT3"] = pd.to_datetime(demo["D020AT3"], format="%Y%m%d", errors="coerce")
@@ -1072,13 +1092,13 @@ demo = demo.sort_values("D020AT3").drop_duplicates("ENC_HN", keep="last").reset_
 temp = dementia_index.merge(demo, on="ENC_HN", how="left")
 temp["age_at_index"] = (temp["Index Date"] - temp["D020AT3"]).dt.days / 365
 temp.loc[temp["age_at_index"] < 18, "age_at_index"].describe() 
-# count    25.000000
-# mean      7.890740
-# std       5.616569
+# count    31.000000
+# mean      7.922050
+# std       5.578331
 # min       0.361644
-# 25%       3.032877
+# 25%       3.028767
 # 50%       7.079452
-# 75%      13.186301
+# 75%      12.521918
 # max      17.928767
 temp.loc[temp["age_at_index"] < 18, :].to_excel(DATA_DIR / "potential_age_issues.xlsx", index=False)
 
@@ -1092,135 +1112,286 @@ dementia_index.to_parquet(DATA_DIR / "dementia_index.parquet", index=False)
 
 
 # =============================================================================
-# Label assignment on dementia_index (subtype classification rules)
+# Label assignment (v2 subtype classification rules)
 # =============================================================================
-dementia_index_labelled = dementia_index.copy()
-
-ad_at_index = dementia_index_labelled["AD Date"].notna() & (dementia_index_labelled["AD Date"] <= dementia_index_labelled["Index Date"])
-vad_at_index = dementia_index_labelled["VaD Date"].notna() & (dementia_index_labelled["VaD Date"] <= dementia_index_labelled["Index Date"])
-other_at_index = dementia_index_labelled["Other Date"].notna() & (dementia_index_labelled["Other Date"] <= dementia_index_labelled["Index Date"])
-
-specific_count_at_index = ad_at_index.astype(int) + vad_at_index.astype(int) + other_at_index.astype(int)
-
-dementia_index_labelled["Initial Label"] = "Unspecified"
-dementia_index_labelled.loc[specific_count_at_index >= 2, "Initial Label"] = "Mixed"
-dementia_index_labelled.loc[(specific_count_at_index == 1) & ad_at_index, "Initial Label"] = "AD"
-dementia_index_labelled.loc[(specific_count_at_index == 1) & vad_at_index, "Initial Label"] = "VaD"
-dementia_index_labelled.loc[(specific_count_at_index == 1) & other_at_index, "Initial Label"] = "Other"
-
-ad_any = dementia_index_labelled["AD Date"].notna()
-vad_any = dementia_index_labelled["VaD Date"].notna()
-other_any = dementia_index_labelled["Other Date"].notna()
-specific_count_any = ad_any.astype(int) + vad_any.astype(int) + other_any.astype(int)
-
-dementia_index_labelled["Final Label"] = "Unspecified"
-dementia_index_labelled.loc[specific_count_any >= 2, "Final Label"] = "Mixed"
-dementia_index_labelled.loc[(specific_count_any == 1) & ad_any, "Final Label"] = "AD"
-dementia_index_labelled.loc[(specific_count_any == 1) & vad_any, "Final Label"] = "VaD"
-dementia_index_labelled.loc[(specific_count_any == 1) & other_any, "Final Label"] = "Other"
-
-dementia_index_labelled.to_parquet(DATA_DIR / "dementia_index_labelled.parquet", index=False)
+# The subtype_detail column of dementia_icd10_map.csv holds the type of each code.
+#
+# Rules:
+# - Specific types: AD, VaD, FTD, PDD, PSP, MSA, Other (G318, F021, F022, F024, F028).
+# - Two or more distinct specific types -> Mixed. Two codes of one type
+#   (e.g. G318 and F028, both Other) do not make Mixed.
+# - No specific type yet -> "Unspecified (ICD)" if F03 is present, else
+#   "Unspecified (med)". A later specific type overrides both Unspecified kinds.
+# - Initial Label uses the evidence up to the index date. Final Label uses all evidence.
+SPECIFIC_TYPES = ["AD", "VaD", "FTD", "PDD", "PSP", "MSA", "Other"]
+UNSPEC_ICD = "Unspecified (ICD)"
+UNSPEC_MED = "Unspecified (med)"
+DX_TYPES = SPECIFIC_TYPES + [UNSPEC_ICD]
+LABEL_ORDER = SPECIFIC_TYPES + ["Mixed", UNSPEC_ICD, UNSPEC_MED]
 
 
+def build_detailed_type_events(dx_working_df: pl.DataFrame, map_dir: Path = MAP_DIR) -> pl.DataFrame:
+    """Return the first date and first code per patient x detailed diagnosis type."""
+    dementia_map = pl.read_csv(str(map_dir / "dementia_icd10_map.csv")).with_columns(
+        _normalize_code_expr(pl.col("code")).alias("code"),
+    )
+    type_prefixes = {
+        dx_type: dementia_map.filter(pl.col("subtype_detail") == dx_type)["code"].to_list()
+        for dx_type in SPECIFIC_TYPES
+    }
+    type_prefixes[UNSPEC_ICD] = dementia_map.filter(pl.col("subtype_detail") == "Unspecified")["code"].to_list()
 
+    type_expr = pl.lit(None, dtype=pl.Utf8)
+    for dx_type, prefixes in reversed(list(type_prefixes.items())):
+        type_expr = pl.when(_prefix_match_expr(pl.col("code"), prefixes)).then(pl.lit(dx_type)).otherwise(type_expr)
+
+    return (
+        dx_working_df
+        .with_columns(pl.col("D035KEY").cast(pl.Utf8).str.split(", ").alias("D035KEY_LIST"))
+        .explode("D035KEY_LIST")
+        .with_columns(_normalize_code_expr(pl.col("D035KEY_LIST")).alias("code"))
+        .with_columns(type_expr.alias("dx"))
+        .filter(pl.col("dx").is_not_null())
+        .sort(["ENC_HN", "dx", "D001KEY", "code"])
+        .group_by(["ENC_HN", "dx"], maintain_order=True)
+        .agg(
+            pl.col("D001KEY").first().alias("date"),
+            pl.col("code").first().alias("first_code"),
+        )
+    )
+
+
+def assign_detailed_label(type_dates: pd.DataFrame, at: pd.Series | None = None) -> pd.Series:
+    """Label each row from its type dates, using only evidence on or before `at` (None = all)."""
+    def seen(col: str) -> pd.Series:
+        present = type_dates[col].notna()
+        return present if at is None else present & (type_dates[col] <= at)
+
+    specific_seen = pd.DataFrame({dx_type: seen(dx_type) for dx_type in SPECIFIC_TYPES})
+    n_specific = specific_seen.sum(axis=1)
+
+    label = pd.Series(UNSPEC_MED, index=type_dates.index, dtype=object)
+    label[seen(UNSPEC_ICD)] = UNSPEC_ICD
+    for dx_type in SPECIFIC_TYPES:
+        label[(n_specific == 1) & specific_seen[dx_type]] = dx_type
+    label[n_specific >= 2] = "Mixed"
+    return label
+
+
+cohort_ids = dementia_index["ENC_HN"]
+
+# Diagnosis rows: one per patient x type at its first date.
+dx_type_events = (
+    build_detailed_type_events(dx_working_pl, MAP_DIR)
+    .filter(pl.col("ENC_HN").is_in(cohort_ids.to_list()))
+    .to_pandas()
+)
+dx_type_events["source"] = "dx"
+
+# Medication row: the qualified medication date (after the exact exclusions).
+# first_code is the first qualifying dementia drug code on that date.
+qualified_class = final_cohort.loc[:, ["ENC_HN", "achei_left", "memantine_left"]]
+med_on_date = med_working.merge(
+    dementia_index[["ENC_HN", "Medication Date"]].dropna(), on="ENC_HN", how="inner"
+).merge(qualified_class, on="ENC_HN", how="left")
+med_on_date = med_on_date.loc[
+    (med_on_date["REC_DATE"] == med_on_date["Medication Date"])
+    & (
+        ((med_on_date["drug_class"] == "AChEI") & med_on_date["achei_left"].fillna(False).astype(bool))
+        | ((med_on_date["drug_class"] == "Memantine") & med_on_date["memantine_left"].fillna(False).astype(bool))
+    )
+]
+med_type_events = (
+    med_on_date.sort_values(["ENC_HN", "CODE"])
+    .drop_duplicates("ENC_HN")
+    .rename(columns={"Medication Date": "date", "CODE": "first_code"})
+    .loc[:, ["ENC_HN", "date", "first_code"]]
+)
+med_type_events["dx"] = UNSPEC_MED
+med_type_events["source"] = "med"
+
+# Wide table of first dates per type (one row per cohort patient).
+type_dates = (
+    dx_type_events.pivot(index="ENC_HN", columns="dx", values="date")
+    .reindex(index=cohort_ids, columns=DX_TYPES)
+)
+type_dates.columns.name = None
+
+# Long format: one row per patient x type; label = cumulative label on that date.
+dementia_subtype_long = pd.concat([dx_type_events, med_type_events], ignore_index=True)
+dementia_subtype_long["dx"] = pd.Categorical(dementia_subtype_long["dx"], categories=DX_TYPES + [UNSPEC_MED])
+dementia_subtype_long = dementia_subtype_long.sort_values(["ENC_HN", "date", "dx"]).reset_index(drop=True)
+dementia_subtype_long["dx"] = dementia_subtype_long["dx"].astype(str)
+long_dates = type_dates.reindex(dementia_subtype_long["ENC_HN"]).reset_index(drop=True)
+dementia_subtype_long["label"] = assign_detailed_label(long_dates, dementia_subtype_long["date"]).values
+dementia_subtype_long = dementia_subtype_long[["ENC_HN", "date", "dx", "label", "first_code", "source"]]
+
+# Codes on the diagnosis date and the medication date (all working codes on that date).
+dx_codes_on_date = dx_working[["ENC_HN", "D001KEY", "D035KEY"]].rename(
+    columns={"D001KEY": "Diagnosis Date", "D035KEY": "dx_icd_codes"}
+)
+med_codes_on_date = (
+    med_working.groupby(["ENC_HN", "REC_DATE"])["CODE"]
+    .agg(lambda codes: ", ".join(sorted(set(codes))))
+    .reset_index()
+    .rename(columns={"REC_DATE": "Medication Date", "CODE": "medication_codes"})
+)
+
+dementia_index_labelled_v2 = dementia_index[["ENC_HN", "Index Date", "Diagnosis Date", "Medication Date"]].copy()
+dementia_index_labelled_v2 = dementia_index_labelled_v2.merge(
+    type_dates.rename(columns={col: f"{col} Date" for col in DX_TYPES}).reset_index(), on="ENC_HN", how="left"
+)
+dementia_index_labelled_v2 = dementia_index_labelled_v2.merge(dx_codes_on_date, on=["ENC_HN", "Diagnosis Date"], how="left")
+dementia_index_labelled_v2 = dementia_index_labelled_v2.merge(med_codes_on_date, on=["ENC_HN", "Medication Date"], how="left")
+dementia_index_labelled_v2 = dementia_index_labelled_v2.merge(
+    dementia_index[["ENC_HN", "D020AT3", "age_at_index"]], on="ENC_HN", how="left"
+)
+
+wide_dates = type_dates.reindex(dementia_index_labelled_v2["ENC_HN"]).reset_index(drop=True)
+dementia_index_labelled_v2["Initial Label"] = assign_detailed_label(wide_dates, dementia_index_labelled_v2["Index Date"]).values
+dementia_index_labelled_v2["Final Label"] = assign_detailed_label(wide_dates).values
+
+dementia_index_labelled_v2.to_parquet(DATA_DIR / "dementia_index_labelled_v2.parquet", index=False)
+dementia_subtype_long.to_parquet(DATA_DIR / "dementia_subtype_long.parquet", index=False)
+
+
+# =============================================================================
+# v2 checks
+# =============================================================================
+v2_labels = dementia_index_labelled_v2.set_index("ENC_HN")[["Initial Label", "Final Label"]]
+last_long_label = dementia_subtype_long.groupby("ENC_HN")["label"].last()
+index_long_label = (
+    dementia_subtype_long.merge(dementia_index[["ENC_HN", "Index Date"]], on="ENC_HN")
+    .query("date <= `Index Date`")
+    .groupby("ENC_HN")["label"].last()
+)
+
+
+def _no_revert(labels: pd.Series) -> bool:
+    seq = list(labels)
+    for prev, cur in zip(seq, seq[1:]):
+        if prev not in (UNSPEC_ICD, UNSPEC_MED) and cur in (UNSPEC_ICD, UNSPEC_MED):
+            return False
+        if prev == UNSPEC_ICD and cur == UNSPEC_MED:
+            return False
+        if prev == "Mixed" and cur != "Mixed":
+            return False
+    return True
+
+
+v2_checks = [
+    ("v2 wide rows == dementia_index rows", len(dementia_index_labelled_v2) == len(dementia_index)),
+    ("v2 wide ENC_HN unique", dementia_index_labelled_v2["ENC_HN"].is_unique),
+    ("long ENC_HN set == wide ENC_HN set",
+     set(dementia_subtype_long["ENC_HN"]) == set(dementia_index_labelled_v2["ENC_HN"])),
+    ("one long row per ENC_HN x dx", not dementia_subtype_long.duplicated(["ENC_HN", "dx"]).any()),
+    ("Final Label == last long label",
+     (v2_labels["Final Label"] == last_long_label.reindex(v2_labels.index)).all()),
+    ("Initial Label == long label at index date",
+     (v2_labels["Initial Label"] == index_long_label.reindex(v2_labels.index)).all()),
+    ("labels never revert (specific->Unspecified, ICD->med, Mixed->other)",
+     dementia_subtype_long.groupby("ENC_HN")["label"].apply(_no_revert).all()),
+]
+
+print("\n=== v2 Checks ===")
+for name, ok in v2_checks:
+    print(f"{'OK   ' if ok else 'CHECK'} {name}")
+# OK    v2 wide rows == dementia_index rows
+# OK    v2 wide ENC_HN unique
+# OK    long ENC_HN set == wide ENC_HN set
+# OK    one long row per ENC_HN x dx
+# OK    Final Label == last long label
+# OK    Initial Label == long label at index date
+# OK    labels never revert (specific->Unspecified, ICD->med, Mixed->other)
 
 # =============================================================================
 # Subtype distribution and transition summaries
 # =============================================================================
-dist_order = ["AD", "VaD", "Unspecified", "Other", "Mixed"]
-trans_order = ["AD", "VaD", "Unspecified", "Mixed", "Other"]
-
-n_total = int(len(dementia_index_labelled))
-init_counts = dementia_index_labelled["Initial Label"].value_counts().reindex(dist_order, fill_value=0)
-final_counts = dementia_index_labelled["Final Label"].value_counts().reindex(dist_order, fill_value=0)
-
 subtype_name_map = {
     "AD": "Alzheimer's Disease",
     "VaD": "Vascular Dementia",
-    "Unspecified": "Unspecified",
+    "FTD": "Frontotemporal Dementia",
+    "PDD": "Parkinson's Disease Dementia",
+    "PSP": "Progressive Supranuclear Palsy",
+    "MSA": "Multiple System Atrophy",
     "Other": "Other Dementia",
     "Mixed": "Mixed Dementia",
+    UNSPEC_ICD: UNSPEC_ICD,
+    UNSPEC_MED: UNSPEC_MED,
 }
 
+n_total = int(len(v2_labels))
+init_counts = v2_labels["Initial Label"].value_counts().reindex(LABEL_ORDER, fill_value=0)
+final_counts = v2_labels["Final Label"].value_counts().reindex(LABEL_ORDER, fill_value=0)
+
 distribution_rows = []
-for label in dist_order:
-    init_n = int(init_counts[label])
-    final_n = int(final_counts[label])
-    init_pct = (init_n / n_total * 100.0) if n_total > 0 else 0.0
-    final_pct = (final_n / n_total * 100.0) if n_total > 0 else 0.0
+for label in LABEL_ORDER:
+    init_n, final_n = int(init_counts[label]), int(final_counts[label])
     distribution_rows.append(
         {
             "Subtype": subtype_name_map[label],
             "Index n": init_n,
-            "Index %": round(init_pct, 2),
-            "Index n (%)": f"{init_n} ({init_pct:.2f}%)",
+            "Index n (%)": f"{init_n} ({init_n / n_total * 100:.2f}%)",
             "Final n": final_n,
-            "Final %": round(final_pct, 2),
-            "Final n (%)": f"{final_n} ({final_pct:.2f}%)",
+            "Final n (%)": f"{final_n} ({final_n / n_total * 100:.2f}%)",
         }
     )
-
 distribution_rows.append(
-    {
-        "Subtype": "Total",
-        "Index n": n_total,
-        "Index %": 100.0,
-        "Index n (%)": f"{n_total} (100.00%)",
-        "Final n": n_total,
-        "Final %": 100.0,
-        "Final n (%)": f"{n_total} (100.00%)",
-    }
+    {"Subtype": "Total", "Index n": n_total, "Index n (%)": f"{n_total} (100.00%)",
+     "Final n": n_total, "Final n (%)": f"{n_total} (100.00%)"}
 )
-
 subtype_distribution = pd.DataFrame(distribution_rows)
 subtype_distribution.to_parquet(DATA_DIR / "subtype_distribution.parquet", index=False)
 
-transition_counts = pd.crosstab(
-    dementia_index_labelled["Initial Label"],
-    dementia_index_labelled["Final Label"],
-).reindex(index=trans_order, columns=trans_order, fill_value=0)
-
+transition_counts = pd.crosstab(v2_labels["Initial Label"], v2_labels["Final Label"]).reindex(
+    index=LABEL_ORDER, columns=LABEL_ORDER, fill_value=0
+)
 row_totals = transition_counts.sum(axis=1)
-transition_pct = transition_counts.div(row_totals.replace(0, pd.NA), axis=0).fillna(0.0) * 100.0
-
 transition_rows = []
-for initial_label in trans_order:
-    row_dict = {"Index \\ Final": initial_label}
-    for final_label in trans_order:
+for initial_label in LABEL_ORDER:
+    row_total = int(row_totals[initial_label])
+    row_dict = {"Index \\ Final": initial_label, "Row Total": row_total}
+    for final_label in LABEL_ORDER:
         n_val = int(transition_counts.loc[initial_label, final_label])
-        pct_val = float(transition_pct.loc[initial_label, final_label])
+        pct_val = n_val / row_total * 100 if row_total else 0.0
         row_dict[final_label] = f"{n_val} ({pct_val:.2f}%)"
-    row_dict["Row Total"] = int(row_totals.loc[initial_label])
     transition_rows.append(row_dict)
-
-column_total_row = {"Index \\ Final": "Column Total"}
-for final_label in trans_order:
-    column_total_row[final_label] = int(transition_counts[final_label].sum())
-column_total_row["Row Total"] = int(transition_counts.values.sum())
+column_total_row = {"Index \\ Final": "Column Total", "Row Total": int(transition_counts.values.sum())}
+for final_label in LABEL_ORDER:
+    column_total_row[final_label] = str(int(transition_counts[final_label].sum()))
 transition_rows.append(column_total_row)
-
 subtype_transition = pd.DataFrame(transition_rows)
 subtype_transition.to_parquet(DATA_DIR / "subtype_transition.parquet", index=False)
 
 print("\n=== Subtype Distribution ===")
-print(tabulate(subtype_distribution[["Subtype", "Index n (%)", "Final n (%)"]], headers="keys", tablefmt="github", showindex=False))
-# | Subtype             | Index n (%)     | Final n (%)     |
-# |---------------------|-----------------|-----------------|
-# | Alzheimer's Disease | 3459 (21.70%)   | 5051 (31.69%)   |
-# | Vascular Dementia   | 1038 (6.51%)    | 1335 (8.38%)    |
-# | Unspecified         | 9565 (60.01%)   | 5688 (35.68%)   |
-# | Other Dementia      | 1757 (11.02%)   | 1807 (11.34%)   |
-# | Mixed Dementia      | 121 (0.76%)     | 2059 (12.92%)   |
-# | Total               | 15940 (100.00%) | 15940 (100.00%) |
+print(tabulate(subtype_distribution[["Subtype", "Index n (%)", "Final n (%)"]], headers="keys", tablefmt="github",
+               showindex=False))
+# | Subtype                        | Index n (%)     | Final n (%)     |
+# |--------------------------------|-----------------|-----------------|
+# | Alzheimer's Disease            | 3596 (21.55%)   | 5223 (31.30%)   |
+# | Vascular Dementia              | 1074 (6.44%)    | 1391 (8.34%)    |
+# | Frontotemporal Dementia        | 23 (0.14%)      | 24 (0.14%)      |
+# | Parkinson's Disease Dementia   | 201 (1.20%)     | 252 (1.51%)     |
+# | Progressive Supranuclear Palsy | 73 (0.44%)      | 76 (0.46%)      |
+# | Multiple System Atrophy        | 83 (0.50%)      | 81 (0.49%)      |
+# | Other Dementia                 | 1451 (8.70%)    | 1415 (8.48%)    |
+# | Mixed Dementia                 | 142 (0.85%)     | 2213 (13.26%)   |
+# | Unspecified (ICD)              | 3740 (22.41%)   | 2722 (16.31%)   |
+# | Unspecified (med)              | 6303 (37.77%)   | 3289 (19.71%)   |
+# | Total                          | 16686 (100.00%) | 16686 (100.00%) |
 
 print("\n=== Subtype Transition (Row %) ===")
-columns_for_display = ["Index \ Final", "Row Total", "AD", "VaD", "Unspecified", "Mixed", "Other"]
-print(tabulate(subtype_transition[columns_for_display], headers="keys", tablefmt="github", showindex=False))
-# | Index \ Final   |   Row Total | AD            | VaD          | Unspecified   | Mixed         | Other         |
-# |-----------------|-------------|---------------|--------------|---------------|---------------|---------------|
-# | AD              |        3459 | 2921 (84.45%) | 0 (0.00%)    | 0 (0.00%)     | 538 (15.55%)  | 0 (0.00%)     |
-# | VaD             |        1038 | 0 (0.00%)     | 774 (74.57%) | 0 (0.00%)     | 264 (25.43%)  | 0 (0.00%)     |
-# | Unspecified     |        9565 | 2130 (22.27%) | 561 (5.87%)  | 5688 (59.47%) | 1014 (10.60%) | 172 (1.80%)   |
-# | Mixed           |         121 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)     | 121 (100.00%) | 0 (0.00%)     |
-# | Other           |        1757 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)     | 122 (6.94%)   | 1635 (93.06%) |
-# | Column Total    |       15940 | 5051          | 1335         | 5688          | 2059          | 1807          |
+print(tabulate(subtype_transition, headers="keys", tablefmt="github", showindex=False))
+# | Index \ Final     |   Row Total | AD            | VaD          | FTD         | PDD          | PSP         | MSA         | Other         | Mixed         | Unspecified (ICD)   | Unspecified (med)   |
+# |-------------------|-------------|---------------|--------------|-------------|--------------|-------------|-------------|---------------|---------------|---------------------|---------------------|
+# | AD                |        3596 | 3034 (84.37%) | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)   | 0 (0.00%)     | 562 (15.63%)  | 0 (0.00%)           | 0 (0.00%)           |
+# | VaD               |        1074 | 0 (0.00%)     | 806 (75.05%) | 0 (0.00%)   | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)   | 0 (0.00%)     | 268 (24.95%)  | 0 (0.00%)           | 0 (0.00%)           |
+# | FTD               |          23 | 0 (0.00%)     | 0 (0.00%)    | 18 (78.26%) | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)   | 0 (0.00%)     | 5 (21.74%)    | 0 (0.00%)           | 0 (0.00%)           |
+# | PDD               |         201 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)   | 152 (75.62%) | 0 (0.00%)   | 0 (0.00%)   | 0 (0.00%)     | 49 (24.38%)   | 0 (0.00%)           | 0 (0.00%)           |
+# | PSP               |          73 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)    | 65 (89.04%) | 0 (0.00%)   | 0 (0.00%)     | 8 (10.96%)    | 0 (0.00%)           | 0 (0.00%)           |
+# | MSA               |          83 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)    | 0 (0.00%)   | 76 (91.57%) | 0 (0.00%)     | 7 (8.43%)     | 0 (0.00%)           | 0 (0.00%)           |
+# | Other             |        1451 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)   | 1375 (94.76%) | 76 (5.24%)    | 0 (0.00%)           | 0 (0.00%)           |
+# | Mixed             |         142 | 0 (0.00%)     | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)    | 0 (0.00%)   | 0 (0.00%)   | 0 (0.00%)     | 142 (100.00%) | 0 (0.00%)           | 0 (0.00%)           |
+# | Unspecified (ICD) |        3740 | 688 (18.40%)  | 222 (5.94%)  | 0 (0.00%)   | 39 (1.04%)   | 4 (0.11%)   | 1 (0.03%)   | 18 (0.48%)    | 418 (11.18%)  | 2350 (62.83%)       | 0 (0.00%)           |
+# | Unspecified (med) |        6303 | 1501 (23.81%) | 363 (5.76%)  | 6 (0.10%)   | 61 (0.97%)   | 7 (0.11%)   | 4 (0.06%)   | 22 (0.35%)    | 678 (10.76%)  | 372 (5.90%)         | 3289 (52.18%)       |
+# | Column Total      |       16686 | 5223          | 1391         | 24          | 252          | 76          | 81          | 1415          | 2213          | 2722                | 3289                |
