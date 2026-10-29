@@ -125,28 +125,11 @@ Patients with any Memantine prescription are assessed against two exclusion crit
 | Schizophrenia differential | Clozapine prescription **or** schizophrenia-related diagnosis present anywhere in patient's medical history |
 | Radiotherapy differential | Memantine prescription falls within the course of radiotherapy (between first and last recorded radiotherapy date) |
 
-The mapping table of schizophrenia-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/schizophrenia_icd10_map.csv). The mapping table of clozapine medication codes can be found [here](maplist/cohort/clozapine_map.csv). The mapping table of radiotherapy-related ICD-9-CM procedure codes can be found [here](maplist/cohort/radiotherapy_icd9_map.csv).
+The mapping table of schizophrenia-related ICD-10-TM codes can be found in the maplist folder [here](maplist/cohort/schizophrenia_icd10_map.csv). The mapping table of clozapine medication codes can be found [here](maplist/cohort/clozapine_map.csv).
 
 ##### Radiotherapy
 
-The course of radiotherapy is identified using the following ICD-9-CM procedure codes:
-
-| ICD-9-CM Code | Description |
-|:---|:---|
-| 9221 | Superficial radiation |
-| 9222 | Orthovoltage radiation |
-| 9223 | Radioisotope teleradiotherapy |
-| 9224 | Teleradiotherapy using photons |
-| 9225 | Teleradiotherapy using electrons |
-| 9226 | Teleradiotherapy using other particles |
-| 9227 | Implantation or insertion of radioactive elements |
-| 9229 | Other radiotherapy |
-| 9230 | Stereotactic radiosurgery, NOS |
-| 9231 | Single source photon radiosurgery |
-| 9232 | Multi-source photon radiosurgery (Gamma Knife) |
-| 9233 | Particulate radiosurgery |
-| 9239 | Stereotactic radiosurgery, NEC |
-| 9241 | Intraoperative electron radiation therapy |
+The course of radiotherapy is identified using ICD-9-CM procedure codes (between the first and the last recorded radiotherapy date). The mapping table of radiotherapy-related ICD-9-CM procedure codes can be found in the maplist folder [here](maplist/cohort/radiotherapy_icd9_map.csv).
 
 > [!NOTE]
 > At this stage, any Memantine prescription recorded during a course of radiotherapy — regardless of the body site irradiated — is excluded from consideration as a dementia indicator. It is noted that the approach may overestimate however it allows the exclusion criteriato be standardized across centers.
