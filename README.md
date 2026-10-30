@@ -74,7 +74,7 @@ The maplist of ICD-10 codes and medication codes used for cohort identification 
 | | | |
 | MCI (ICD-10) | Codes under review | [here](maplist/cohort/review_code_map.csv) |
 | BPSD (ICD-10) | Codes under review | [here](maplist/cohort/review_code_map.csv) |
-| Degenerative / Uncertain (ICD-10) | Codes under review | [here](maplist/cohort/degenerative_uncertain_code_map.csv) |
+| Degenerative / Uncertain (ICD-10) | Codes under review | [here](maplist/cohort/review_code_map.csv) |
 
 #### Data Request
 More details regarding this and other cohorts can be found [here](https://www.rama.mahidol.ac.th/ceb/CEBdatawarehouse/Data/Dementia) at CEB-RAMA-MU. Data request can be made on the same webpage.

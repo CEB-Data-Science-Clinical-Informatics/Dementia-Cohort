@@ -1,8 +1,8 @@
 code,match_type,domain,review_group,include_in_cohort,exclude_codes,note
 G31,prefix,diagnosis,Degenerative / Uncertain,0,G318,All G31* codes under review except G318 which is included in the dementia cohort
-G312,exact,diagnosis,Degenerative / Uncertain,0,Explicitly reported separately in documentation
+G312,exact,diagnosis,Degenerative / Uncertain,0,,Explicitly reported separately in documentation
 G32,prefix,diagnosis,Degenerative / Uncertain,0,G232|G233,All G32* codes under review except G232 and G233 which are included in the dementia cohort
-G328,exact,diagnosis,Degenerative / Uncertain,0,Explicitly reported separately in documentation
+G328,exact,diagnosis,Degenerative / Uncertain,0,,Explicitly reported separately in documentation
 F067,exact,diagnosis,MCI,0,,Mild cognitive disorder under separate review and not included in cohort
 R41,exact,diagnosis,MCI,0,,Other symptoms and signs involving cognitive functions and awareness
 R418,exact,diagnosis,MCI,0,,Other and unspecified symptoms and signs involving cognitive functions and awareness
